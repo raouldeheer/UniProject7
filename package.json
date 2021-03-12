@@ -1,0 +1,22 @@
+{
+  "name": "uniproject7",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p config/",
+    "watch": "tsc -w -p config/",
+    "nodemon": "nodemon -w ./dist ./dist/index.js",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mylas": "^1.2.3"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7",
+    "tsc": "^1.20150623.0"
+  }
+}

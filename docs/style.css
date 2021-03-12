@@ -1,0 +1,61 @@
+body {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    width: 100vw;
+    height: 100vh;
+}
+
+textarea {
+    width: 100%;
+    height: 100%;
+}
+
+button {
+    margin: 20px;
+    padding: 20px 60px;
+    font-size: 15px;
+}
+
+#timeResult,
+#totaalResult {
+    font-size: larger;
+}
+
+#stepResult {
+    width: 100%;
+    height: 100%;
+    word-wrap: break-word;
+}
+
+.grid-container {
+    width: 100%;
+    height: 95%;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 0px 0px;
+    grid-template-areas:
+        "InputField ButtonField Progess"
+        "InputField OutputField OutputField"
+        "InputField OutputField OutputField";
+}
+
+.InputField {
+    grid-area: InputField;
+}
+
+.OutputField {
+    grid-area: OutputField;
+    padding: 20px;
+}
+
+.ButtonField {
+    grid-area: ButtonField;
+}
+
+
+.Progess {
+    grid-area: Progess;
+    padding: 20px;
+}
