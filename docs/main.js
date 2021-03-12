@@ -36,11 +36,12 @@ class HoleDistances {
     constructor(matrix) {
         this.doneList = new Set();
         this.distances = matrix;
+        this.length = this.distances.length;
     }
     getRow(index) {
         const i = index;
         let row = [];
-        for (let j = 0; j < this.distances.length; j++) {
+        for (let j = 0; j < this.length; j++) {
             if (this.doneList.has(j)) continue;
             const data = this.getData(i, j);
             if (data == null) continue;
