@@ -33,24 +33,40 @@ async function timeMatrix(Drillholes) {
     return matrix;
 }
 class HoleDistances {
-    constructor(matrix) {
-        this.doneList = new Set();
-        this.distances = matrix;
+    constructor(Drillholes) {
+        const factor = (10 / 9);
+        this.doneList = {};
+        this.distances = {};
         this.length = this.distances.length;
+        for (let i = 0; i < this.length; i++) {
+            this.doneList[`${i}`] = true;
+        }
+        Drillholes.forEach(elementi => {
+            Drillholes.every(elementj => {
+                if (elementj.index < elementi.index) {
+                    const value = Math.max(Math.abs(elementi.x - elementj.x) * factor, Math.abs(elementi.y - elementj.y));
+                    this.distances[`${elementj.index}-${elementi.index}`] = value;
+                    this.distances[`${elementi.index}-${elementj.index}`] = value;
+                    return true;
+                } else return false;
+            });
+        });
     }
     getRow(index) {
         const i = index;
         let row = [];
         for (let j = 0; j < this.length; j++) {
-            if (this.doneList.has(j)) continue;
-            const data = this.getData(i, j);
-            if (data == null) continue;
-            row.push({ indexnumber: j, Dist: data });
+            if (`${j}` in this.doneList) {
+                if (i == j) continue;
+                const data = this.getData(i, j);
+                if (data == null) continue;
+                row.push({ indexnumber: j, Dist: data });
+            }
         }
         return row;
     }
-    getData = (x, y) => y > x ? this.distances[y][x] : y < x ? this.distances[x][y] : null;
-    deleteRow = (index) => this.doneList.add(index);
+    getData = (x, y) => this.distances[`${x}-${y}`];
+    deleteRow = (index) => delete this.doneList[`${index}`];
 }
 async function solve(dists) {
     let startPos = 0;
@@ -76,14 +92,14 @@ async function run(data) {
     addText("Loaded lines.");
     const holes = await GetDrillholes(lines);
     addText("Made 'hole 0' the bitholder/start position.<br>Made Drillholes.");
-    const distances = await timeMatrix(holes);
+    // const distances = await timeMatrix(holes);
     addText("Calculated distance matrix.");
-    const holeDistances = new HoleDistances(distances);
+    const holeDistances = new HoleDistances(holes);
     addText("Saved distance matrix.");
     const stepsDistance = await solve(holeDistances);
     addText("Solved shortest route.");
     result.time.innerText = `${(Date.now() - time1) / 1000} Seconden`;
     result.totaal.innerText = `${stepsDistance.reduce((prev, curr) => prev + curr)}`;
-    result.step.innerText = `[${Array.from(holeDistances.doneList)}]`;
+    // result.step.innerText = `[${Array.from(holeDistances.doneList)}]`;
 }
 startButton.addEventListener("click", ev => run(input.value))

@@ -106,7 +106,7 @@ class HoleDistances {
     }
 }
 
-function solve(dists: HoleDistances) {
+function solveNN(dists: HoleDistances) {
     let startPos = 0;
     let stepsDistance = [];
     for (let i = 0; i < dists.length - 1; i++) {
@@ -120,6 +120,53 @@ function solve(dists: HoleDistances) {
     return stepsDistance;
 }
 
+
+function solveRegion(dists: HoleDistances, maxWorkingDistance: number) {
+    let startPos = 0;
+    let stepsDistance = [];
+    while (true) {
+        //check if done
+        if (dists.doneList.size == (dists.length - 1)) break;
+
+        // making local variables
+        let localStartPos = startPos;
+        let localStepsDistance = [];
+        const region: number[] = [];
+        dists.getRow(localStartPos).forEach(value => {
+            if (value.Dist <= maxWorkingDistance) {
+                region.push(value.indexnumber)
+            }
+        })
+
+        //find NN route in local region
+        for (let i = 0; i < region.length; i++) {
+            let localKleinste: DistanceIndex;
+            dists.getRow(localStartPos).forEach(value => {
+                if (region.includes(value.indexnumber)) {
+                    if (localKleinste == undefined) localKleinste = value;
+                    localKleinste = (localKleinste.Dist > value.Dist) ? value : localKleinste;
+                }
+            })
+            localStepsDistance.push(localKleinste.Dist);
+            dists.deleteRow(localStartPos);
+            localStartPos = localKleinste.indexnumber;
+        }
+        dists.deleteRow(localStartPos);
+
+        // add region to globallist 
+        stepsDistance.push(...localStepsDistance);
+
+        // make region to region bridge
+        const bridgeRow = dists.getRow(localStartPos);
+        if (bridgeRow.length <= 0) break;
+        const kleinste = bridgeRow.reduce((prev, curr) => prev.Dist > curr.Dist ? curr : prev);
+        stepsDistance.push(kleinste.Dist);
+        dists.deleteRow(localStartPos);
+        startPos = kleinste.indexnumber;
+    }
+    return stepsDistance;
+}
+
 const time1 = Date.now();
 
 const lines = LoadFile("./e3795.dat");
@@ -129,15 +176,29 @@ const distances = timeMatrix(holes);
 // console.log(distances);
 
 const holeDistances = new HoleDistances(distances);
-const stepsDistance = solve(holeDistances);
-const steps2 = holeDistances.doneList;
+const stepsDistance = solveNN(holeDistances);
+
 const totaal = stepsDistance.reduce((prev, curr) => prev + curr);
 
 const time2 = Date.now();
+
+const holeDistances2 = new HoleDistances(distances);
+
+const step3 = solveRegion(holeDistances2, 100);
+// console.log(step3);
+
+// const steps2 = holeDistances.doneList;
+const totaal2 = step3.reduce((prev, curr) => prev + curr);
+
+const time3 = Date.now();
+
 const diff = time2 - time1;
+const diff2 = time3 - time2;
 
 
 // console.log(steps2);
 console.log(totaal);
+console.log(totaal2);
 
-console.log(`${diff/1000} Seconden`);
+console.log(`${diff / 1000} Seconden`);
+console.log(`${diff2 / 1000} Seconden`);
