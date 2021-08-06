@@ -18,48 +18,48 @@ async function GetDrillholes(lines) {
     return holes;
 }
 async function timeMatrix(Drillholes) {
-    let matrix = [];
-    const factor = (10 / 9);
-    Drillholes.forEach(elementi => {
-        let row = [];
-        Drillholes.every(elementj => {
-            if (elementj.index < elementi.index) {
-                row.push(Math.max(Math.abs(elementi.x - elementj.x) * factor, Math.abs(elementi.y - elementj.y)));
-                return true;
-            } else return false;
-        });
-        matrix.push(row);
+    const factor = Number(10 / 9);
+    return Drillholes.map(elementi => {
+        const row = [];
+        for (let j = 0; j < Drillholes.length; j++) {
+            if (Drillholes[j].index >= elementi.index) break;
+            row.push(Math.max(Math.abs(elementi.x - Drillholes[j].x) * factor, Math.abs(elementi.y - Drillholes[j].y)));
+        }
+        return row;
     });
-    return matrix;
 }
 class HoleDistances {
     constructor(matrix) {
         this.doneList = new Set();
+        this.doneBuff = new Uint8Array(matrix.length);
         this.distances = matrix;
         this.length = this.distances.length;
     }
     getRow(index) {
-        const i = index;
-        let row = [];
+        const kleinste = { indexnumber: 0, Dist: Number.MAX_VALUE };
         for (let j = 0; j < this.length; j++) {
-            if (this.doneList.has(j)) continue;
-            const data = this.getData(i, j);
-            if (data == null) continue;
-            row.push({ indexnumber: j, Dist: data });
+            if (this.doneBuff[j] == 1) continue;
+            const data = j > index ? this.distances[j][index] : this.distances[index][j];
+            if (data < kleinste.Dist) {
+                kleinste.Dist = data;
+                kleinste.indexnumber = j;
+            }
         }
-        return row;
+        return kleinste;
     }
-    getData = (x, y) => y > x ? this.distances[y][x] : y < x ? this.distances[x][y] : null;
-    deleteRow = (index) => this.doneList.add(index);
+    deleteRow = (index) => {
+        this.doneList.add(index);
+        this.doneBuff[index] = 1;
+    }
 }
 async function solve(dists) {
     let startPos = 0;
-    let stepsDistance = [];
+    let stepsDistance = 0;
     for (let i = 0; i < dists.length - 1; i++) {
-        const kleinste = dists.getRow(startPos).reduce((prev, curr) => prev.Dist > curr.Dist ? curr : prev);
-        stepsDistance.push(kleinste.Dist);
         dists.deleteRow(startPos);
-        startPos = kleinste.indexnumber;
+        const { indexnumber, Dist } = dists.getRow(startPos);
+        stepsDistance += Dist;
+        startPos = indexnumber;
     }
     dists.deleteRow(startPos);
     return stepsDistance;
@@ -83,7 +83,7 @@ async function run(data) {
     const stepsDistance = await solve(holeDistances);
     addText("Solved shortest route.");
     result.time.innerText = `${(Date.now() - time1) / 1000} Seconden`;
-    result.totaal.innerText = `${stepsDistance.reduce((prev, curr) => prev + curr)}`;
+    result.totaal.innerText = `${stepsDistance}`;
     result.step.innerText = `[${Array.from(holeDistances.doneList)}]`;
 }
 startButton.addEventListener("click", ev => run(input.value))
